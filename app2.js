@@ -1,123 +1,87 @@
-var blocks = [];
-var texts = [];
+var texts = document.querySelectorAll('.description');
+var blocks = document.querySelectorAll('.block');
 
-for (let i = 0; i < document.getElementsByClassName('description').length; i++) {
-    texts[i] = document.getElementsByClassName('description').item(i);
-}
+const container = document.querySelector('.container');
+const wholePage = document.querySelector('html');
+const intro = document.querySelector('.introduction');
+const images = document.querySelectorAll('.img');
 
-// First block element starts half down the page
-//others are half a page height, will scroll half speed
+const bgColorConst = 'f5efef';  //constant (lighter) shade
+const bgColor1 = 'feada6';      //colour before transition
+const bgColor2 = 'aef9f3';      //colour after scroll transition
+
+let a1 = parseInt(bgColor1.slice(0,2), 16),
+    a2 = parseInt(bgColor1.slice(2,4), 16),
+    a3 = parseInt(bgColor1.slice(4), 16),
+    b1 = parseInt(bgColor2.slice(0,2), 16),
+    b2 = parseInt(bgColor2.slice(2,4), 16),
+    b3 = parseInt(bgColor2.slice(4), 16);
+
+let r1 = b1 - a1,
+    r2 = b2 - a2,
+    r3 = b3 - a3;
 
 const init = () => {
-    const container = document.querySelector('.container');
-    /* const inspector = document.createElement('div');
-    inspector.setAttribute('style', `
-        position: absolute;
-        height: ${container.offsetHeight}px;
-        width: ${container.offsetWidth}px;
-        left: ${container.offsetLeft}px;
-        top: ${container.offsetTop}px;
-        background: rgba(58, 250, 8, .5);
-    `);
-    document.body.appendChild(inspector); */
+    wholePage.style.background = `linear-gradient(to right, #${bgColorConst} 0%, #${(a1 | 0).toString(16)}${(a2 | 0).toString(16)}${(a3 | 0).toString(16)} 100%)`;
 
     const styles = window.getComputedStyle(container);
     const rows = styles.getPropertyValue('grid-template-rows');
-    const columns = styles.getPropertyValue('grid-template-columns');
-    const rowGap = styles.getPropertyValue('grid-row-gap');
-    const columnGap = styles.getPropertyValue('grid-column-gap');
     const spaceAbove = container.offsetTop;
-    console.log(spaceAbove);
 
-    //first block at row / 2;
-    //next block row / 4 after
+    //Initialise blocks starting half way down screen
     let firstBlock = parseFloat(rows.split(' ')[0].slice(0, -2));
-    /* console.log(firstBlock); */
 
     for (let i = 0; i < document.getElementsByClassName('block').length; i++) {
         blocks[i] = document.querySelector(`.block${i+1}`);
+        //if blocks will scroll at a different speed, change the 4 here
         blocks[i].setAttribute('style', `
-            left: 18%;
-            top: ${(spaceAbove / 2) + (firstBlock / 2 + (firstBlock / 2) * (i))}px;
+            left: 5%;
+            top: ${window.innerHeight / 2 + (firstBlock / 4) * i}px;
             transform: translateY(-50%);
-        `)
+            filter: blur(0.3rem);
+        `);
 
-        let textPositions = texts.slice();
-        textPositions.sort((a,b) => {
-            if (Math.abs(a.getBoundingClientRect().top - blocks[i].getBoundingClientRect().top) <
-            Math.abs(b.getBoundingClientRect().top - blocks[i].getBoundingClientRect().top)) {
-                return -1;
-            } else {
-                return 1;
-            }
-        });
+        //blocks are more opaque when near to the relevent text
+        let distanceBetween = Math.abs((texts[i].getBoundingClientRect().top + texts[i].offsetHeight / 2) - (blocks[i].getBoundingClientRect().top + blocks[i].offsetHeight / 2));
+        blocks[i].style.opacity =  distanceBetween > 50 ? 0.2 : (1 - (distanceBetween / 50)) + 0.2;
 
-        let distanceBetween = Math.abs((textPositions[0].getBoundingClientRect().top + textPositions[0].offsetHeight / 2) - (blocks[i].getBoundingClientRect().top + blocks[i].offsetHeight / 2));
-        blocks[i].style.opacity =  distanceBetween > 50 ? 0 : 1 - (distanceBetween / 30);
-    }
-
+        if (blocks[i].getBoundingClientRect().bottom < intro.getBoundingClientRect().bottom) {
+            blocks[i].style.opacity = 0;
+        }
+    } 
 }
 
+const scrollFunc = () => {
+    const scrollPos = texts[0].getBoundingClientRect().top - window.innerHeight / 2;
 
-const scrollBlocks = () => {
-    const scrollPos = document.scrollingElement.scrollTop;
-    let scrollConstant;
-
-    let sortedTexts;
-    let textInView;
-    let sortedBlocks;
-    let blockInView;
+    const spaceAbove = container.offsetTop;
+  
     for (let i = 0; i < blocks.length; i++) {
-        if (texts[0].getBoundingClientRect().top > window.innerHeight) {
-            blocks[i].style.transform = `translateY(-50%) translate(0, ${-scrollPos}px)`
-            scrollConstant = scrollPos;
-            console.log(`block top: ${blocks[0].getBoundingClientRect().top}`);
-            console.log(`text top: ${texts[0].getBoundingClientRect().top}`);
+        if (texts[0].getBoundingClientRect().top > window.innerHeight / 2) {
+            blocks[i].style.transform = `translateY(-50%)`;
         } else {
-            blocks[i].style.transform = `translateY(-50%) translate(0, ${(-scrollPos / 2)}px)`;
+            //scrolling speed of blocks
+            blocks[i].style.transform = `translateY(-50%) translate(0, ${(scrollPos / 4)}px)`;
         }
 
-        /* let blockPos = 1 - (Math.abs(window.innerHeight / 2 - blocks[i].getBoundingClientRect().top)) / window.innerHeight;
-        blockPos = Math.abs(Math.pow(blockPos, 8));
-        blocks[i].style.opacity = `${blockPos}`; */
+        let distanceBetween = Math.abs((texts[i].getBoundingClientRect().top + texts[i].offsetHeight / 2) - (blocks[i].getBoundingClientRect().top + blocks[i].offsetHeight / 2));
 
-        
-        //get text in view
-        sortedTexts = texts.slice();
-        sortedTexts.sort((a,b) => {
-            if (Math.abs(a.getBoundingClientRect().top - (window.innerHeight - a.getBoundingClientRect().bottom)) <=
-                Math.abs(b.getBoundingClientRect().top - (window.innerHeight - b.getBoundingClientRect().bottom))) {
-                    return -1;
-                } else return 1;
-        } );
-        textInView = sortedTexts[0];
+        blocks[i].style.opacity =  distanceBetween > 50 ? 0.2 : (1 - (distanceBetween / 50)) + 0.2;
 
-        //get block in view
-        sortedBlocks = blocks.slice();
-        sortedBlocks.sort((a,b) => {
-            if (Math.abs(a.getBoundingClientRect().top - (window.innerHeight - a.getBoundingClientRect().bottom)) <=
-                Math.abs(b.getBoundingClientRect().top - (window.innerHeight - b.getBoundingClientRect().bottom))) {
-                    return -1;
-                } else return 1;
-        } );
-        blockInView = sortedBlocks[0];
+        if (blocks[i].getBoundingClientRect().bottom < intro.getBoundingClientRect().bottom) {
+            blocks[i].style.opacity = 0;
+        }
 
-        let textPositions = texts.slice();
-        textPositions.sort((a,b) => {
-            if (Math.abs(a.getBoundingClientRect().top - blocks[i].getBoundingClientRect().top) <
-            Math.abs(b.getBoundingClientRect().top - blocks[i].getBoundingClientRect().top)) {
-                return -1;
-            } else {
-                return 1;
-            }
-        });
-
-        let distanceBetween = Math.abs((textPositions[0].getBoundingClientRect().top + textPositions[0].offsetHeight / 2) - (blocks[i].getBoundingClientRect().top + blocks[i].offsetHeight / 2));
-        blocks[i].style.opacity =  distanceBetween > 50 ? 0 : 1 - (distanceBetween / 30);
-
-
+        blocks[i].style.filter =  distanceBetween > 50 ? `blur(0.3rem)` : `blur(${(distanceBetween / 200)}rem)`;
     }
 
+    //scroll colour change of bg
+    wholePage.style.background = texts[5].getBoundingClientRect().top > window.innerHeight ?
+                                `linear-gradient(to right, #${bgColorConst} 0%, #${bgColor1} 100%)` :
+                                texts[5].getBoundingClientRect().top < window.innerHeight / 2 ?
+                                `linear-gradient(to right, #${bgColorConst} 0%, #${bgColor2} 100%)` :
+                                `linear-gradient(to right, #${bgColorConst} 0%, #${((a1 + (window.innerHeight - texts[5].getBoundingClientRect().top) / (window.innerHeight / 2) * r1) | 0).toString(16)}${(a2 + (window.innerHeight - texts[5].getBoundingClientRect().top) / (window.innerHeight / 2) * r2 | 0).toString(16)}${(a3 + (window.innerHeight - texts[5].getBoundingClientRect().top) / (window.innerHeight / 2) * r3| 0).toString(16)} 100%)`;
 }
 
-window.addEventListener('scroll', scrollBlocks);
+window.addEventListener('scroll', scrollFunc);
+
