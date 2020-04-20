@@ -40,19 +40,28 @@ nav {
     justify-content: space-around;
     padding: 10px 0px 50px 0px;
 }
-.introduction {
-    min-height: 90vh;
-    text-align: center;
-    font-family: lato;
-    font-size: 36px;
-}
-
 .container {
     display: grid;
-    grid-template-columns: 5% 1fr 1fr 5%;
+    grid-template-columns: 20% 1fr 2fr 5%;
     grid-template-rows: repeat(10, 100vh);
     align-items: center;
     margin-bottom: 100vh;
+}
+.title h1 {
+    font-size: 50px;
+    font-family: lato;
+    font-weight: bold;
+    font-style: italic;
+    text-align: center;
+    height: 50vh;
+    line-height: 50vh;
+    vertical-align: middle;
+}
+.introduction {
+    padding: 10px 5% 10px 5%;
+    text-align: start;
+    font-family: lato;
+    font-size: 36px;
 }
 
 .descriptions {
@@ -68,13 +77,13 @@ nav {
 
 .block {
     position: fixed;
+    display: inline-block;
     width: 30%;
-    height: 80px;
     /* background-color: red; */
     font-family: lato;
+    font-weight: bold;
     font-size: 20px;
     text-align: end;
-    line-height: 80px;
 }
 
 .footer-info {
@@ -84,4 +93,10 @@ nav {
 .footer-box {
     display: flex;
     justify-content: space-around;
+}
+
+.img {
+    width: 30vw;
+    left: 50%;
+    position: absolute;
 }
